@@ -18,13 +18,18 @@ import sys, struct, wave
 from collections import OrderedDict
 
 class Progression:
-  def __init__(self,steps=25):
-    self.steps = steps
+  def __init__(self, totalparts, decimals=2, steps=25):
+    self.steps    = steps
+    self.parts    = totalparts
+    self.decimals = decimals
+    self.part     = 0
 
-  def Print(self, percent):
-    hashes = self.steps*int(percent)/100
-    spaces = self.steps-hashes
+  def Update(self):
+    percent = ((100**2)*self.part/self.parts) / 100.0
+    hashes  = self.steps*int(percent)/100
+    spaces  = self.steps-hashes
     print '\r[{0}] {1}%'.format('#'*hashes+' '*spaces, percent),
+    self.part = self.part + 1
 
   def __del__(self):
     print ''
@@ -164,64 +169,74 @@ class dsf2wave:
     """ [ ANNOTATION 4 ] Bits per sample is endian-dependent , 1 bit (LSB) Little Endian <, 8 bits (MSB) Big Endian > """
     data_packer = struct.Struct(('<' if fmt.bits_per_sample == 1 else '>') + str(fmt.block_size)+'s')
     self.bytes_per_channel = (data.end-data.start) / fmt.channel_num
-    data_blocks = (data.end-data.start) / fmt.block_size
+    self.data_blocks = (data.end-data.start) / fmt.block_size
 
-    # Extracting channels
-    channels = {}
-    for channel_name in DSF_Interleaved_fmt:
-      channels[channel_name] = bytearray(self.bytes_per_channel)
+    self.bits_per_byte = 8 / fmt.bits_per_sample
+    self.bitstring_map = {}
+    for byte in [chr(a) for a in range(256)]:
+      bitstring = bin(ord(byte)).replace('0b','').rjust(self.bits_per_byte,'0')
+      self.bitstring_map[byte] = bitstring
 
-    f.seek(data.start,0)
-    progress = Progression()
-    progress.Print(0)
-    for b in range(data_blocks):
-      channel_id   = b % fmt.channel_num
-      channel_name = channels.keys()[channel_id]
-      b_id         = b/fmt.channel_num
-      block_start  = b_id*fmt.block_size
-      block_end    = block_start + fmt.block_size
-      channels[channel_name][block_start:block_end] = f.read(fmt.block_size)
-      #channels[channel_name][block_start:block_end] = data_packer.pack(f.read(fmt.block_size))
-      progress.Print((10000*(b+1)/data_blocks)/100.0)
+  def GetDataBlock(self, block_id):
+    block_size = self.fmt.block_size
+    data_start = self.data.start
+    bits_per_byte = self.bits_per_byte
 
-    progress = None
-    self.channels = channels
+    self.f.seek(data_start+block_id*block_size,0)
+    block = self.f.read(block_size)
+    bitstream = bytearray(block_size*bits_per_byte)
+
+    for bb in range(block_size):
+      bitstream[bb:bb+bits_per_byte] = self.bitstring_map[block[bb]]
+
+    return bitstream
 
   def ToRaw(self,raw_file, max_bytes = -1):
     print "Writing raw file .."
-    cend = len(self.channels[self.channels.keys()[0]])
+    block_size = self.fmt.block_size
+    if not (0 < max_bytes and max_bytes <= self.bytes_per_channel):
+      max_bytes = self.bytes_per_channel
+    last_block = max_bytes/block_size
+    remaining_bytes = max_bytes % block_size
+    if remaining_bytes != 0:
+      last_block = last_block + 1
 
-    progress = Progression()
-    progress.Print(0)
     with open(raw_file,'wb') as f:
       for channel_id in range(self.fmt.channel_num):
-        channel_name = self.channels.keys()[channel_id]
-        if 0 < max_bytes and max_bytes <= cend: # Avoid slicing big arrays
-          f.write(self.channels[channel_name][0:max_bytes])
-        else:
-          f.write(self.channels[channel_name])
-        progress.Print((10000*(channel_id+1)/self.fmt.channel_num)/100.0)
+        print "Converting channel: " + str(channel_id)
+        progress = Progression(self.data_blocks)
+        progress.Update()
+        for block in range(self.data_blocks):
+          bitstring = self.GetDataBlock(block)
+          if block != last_block or remaining_bytes == 0:
+            f.write(bitstring)
+          else:
+            f.write(bitstring[0:remaining_bytes])
 
-    progress = None
-    for channel_id in range(self.fmt.channel_num):
-      print self.channels.keys()[channel_id]
+          progress.Update()
+
+        progress = None
 
   def ToWave(self,wave_file):
     print "Writing wave file .."
-    progress = Progression()
     wav = wave.open(wave_file,'wb')
     wav.setnchannels(self.fmt.channel_num)
     wav.setnframes(self.fmt.sample_count)
     wav.setsampwidth(1)
     wav.setframerate(self.fmt.sampling_freq)
-    progress.Print(0)
+
     for channel_id in range(self.fmt.channel_num):
-      channel_name = self.channels.keys()[channel_id]
-      wav.writeframes(self.channels[channel_name])
-      progress.Print((10000*(channel_id+1)/self.fmt.channel_num)/100.0)
+      print "Converting channel: " + str(channel_id)
+      progress = Progression(self.data_blocks)
+      progress.Update()
+      for block in range(self.data_blocks):
+        bitstring = self.GetDataBlock(block)
+        wav.writeframes(bitstring)
 
+        progress.Update()
 
-    progress = None
+      progress = None
+
     wav.close()
 
   def __str__(self):
@@ -234,9 +249,9 @@ class dsf2wave:
     self.f.close()
 
 dsf = dsf2wave("02-Mend My Mind.dsf")
-dsf.ToRaw("tmp.mine.raw", 1056768)
+#dsf.ToRaw("tmp.mine.raw", 4096*258)
 #dsf.ToRaw("tmp.mine.raw", 4096*100)
-#dsf.ToWave("tmp.mine.wav")
+dsf.ToWave("tmp.mine.wav")
 print " File converted"
 
 """
