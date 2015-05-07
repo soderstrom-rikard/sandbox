@@ -18,8 +18,11 @@ class BinaryNumberException(Exception):
   def __init__(self,bitstring):
     self.val = "Invalid bitstring \"" +bitstring+ "\""
 
+  def __repr__(self):
+    return "%s(%s)" % (self.__class__, repr(self.val))
+
   def __str__(self):
-    return repr(self.val)
+    return self.val
 
 class BinaryNumber:
   def __init__(self,bitstring_or_value):
@@ -33,6 +36,7 @@ class BinaryNumber:
     except ValueError:
       raise BinaryNumberException(self.bitstring)
 
+  """ Integer operator overload """
   def __add__(self,other):
     return self.Operator('__add__',other)
 
@@ -75,9 +79,24 @@ class BinaryNumber:
   def __invert__(self):
     return self.Operator('__invert__')
 
-  def __str__(self):
-    return repr(self.bitstring)
+  """ String operator overloads """
+  def __getitem__(self,key):
+    sign, bits = self.bitstring.split('0b')
+    return BinaryNumber('0b'.join([sign,bits[key]]))
 
+  def __getslice__(self,i,j):
+    return self.__getitem__(slice(i,j))
+
+  def __len__(self):
+    return len(self.bitstring.split('0b')[1])
+
+  def __repr__(self):
+    return "%s(%s)" % (self.__class__, repr(self.bitstring))
+
+  def __str__(self):
+    return self.bitstring
+
+  """ Member Functions """
   def Operator(self,operator,other = None):
     func = getattr(self.Val(),operator)
     if other == None:
