@@ -1,9 +1,8 @@
-def compress(uncompressed):
+def compress(uncompressed, dictionary):
     """Compress a string to a list of output symbols."""
 
     # Build the dictionary.
-    dict_size = 256
-    dictionary = {chr(i): chr(i) for i in range(dict_size)}
+    dict_size = len(dictionary)
 
     w = ""
     result = []
@@ -18,6 +17,9 @@ def compress(uncompressed):
             dict_size += 1
             w = c
 
+        print ('c=%d, w=%8s, result=%s' % (ord(c),list(w).__str__(),result))
+
+    print ('dict=',dictionary)
     # Output the code for w.
     if w:
         result.append(dictionary[w])
@@ -26,12 +28,11 @@ def compress(uncompressed):
 
 
 
-def decompress(compressed):
+def decompress(compressed, dictionary):
     """Decompress a list of output ks to a string."""
 
     # Build the dictionary.
-    dict_size = 256
-    dictionary = {chr(i): chr(i) for i in range(dict_size)}
+    dict_size = len(dictionary)
 
     result = []
     w = compressed.pop(0)
@@ -54,7 +55,9 @@ def decompress(compressed):
 
 
 # How to use:
-compressed = compress('\0\1\2\3\0\1\2\3\0\1\0\2')
+dictionary = {chr(i): chr(i) for i in range(4)}
+print ('dict=',dictionary)
+compressed = compress('\0\1\2\3\0\1\2\3\0\1\0\2', dictionary)
 print (compressed)
-decompressed = decompress(compressed)
-print (decompressed)
+#decompressed = decompress(compressed, dictionary)
+#print (decompressed)
