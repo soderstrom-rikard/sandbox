@@ -1,12 +1,21 @@
+def bits_per_symbol(size):
+  return len(bin(size + size%2)[2:]) - 1
+
 def compress(uncompressed, dictionary):
-    """Compress a string to a list of output symbols."""
+    """Compress a bitstring to a list of output symbols."""
 
     # Build the dictionary.
     dict_size = len(dictionary)
+    bps = bits_per_symbol(dict_size)
+
+    if len(uncompressed)%bps != 0:
+        raise ValueError('Input data cannot be compressed with current dictionary')
 
     w = ""
     result = []
-    for c in uncompressed:
+    print('Current\tNext byte\tOutput\tExtended dictionary')
+    for i in range(0,len(uncompressed),bps):
+        c = uncompressed[i:i+bps]
         wc = w + c
         if wc in dictionary:
             w = wc
@@ -15,14 +24,20 @@ def compress(uncompressed, dictionary):
             # Add wc to the dictionary.
             dictionary[wc] = dict_size
             dict_size += 1
+
+            # Current, next byte, output, extended dictionary
+            print ('%s\t%s\t\t%s\t%d %s' %(w,c,dictionary[w],dict_size,wc))
+
             w = c
 
-        print ('c=%d, w=%8s, result=%s' % (ord(c),list(w).__str__(),result))
+        #print ('c = %s' % (c))
 
-    print ('dict=',dictionary)
     # Output the code for w.
     if w:
         result.append(dictionary[w])
+        print ('%s\t%s\t\t%s' %(w,c,dictionary[w]))
+
+    print ('dict=',dictionary)
     return result
 
 
@@ -33,6 +48,10 @@ def decompress(compressed, dictionary):
 
     # Build the dictionary.
     dict_size = len(dictionary)
+    bits_per_symbol = len(bin(dict_size + dict_size%2)[2:]) - 1
+
+    if len(uncompressed)%bits_per_symbol != 0:
+        raise ValueError('Input data cannot be compressed with current dictionary')
 
     result = []
     w = compressed.pop(0)
@@ -55,9 +74,10 @@ def decompress(compressed, dictionary):
 
 
 # How to use:
-dictionary = {chr(i): chr(i) for i in range(4)}
+dictionary = { bin(i)[2:].rjust(2,'0'): i for i in range(4) }
 print ('dict=',dictionary)
-compressed = compress('\0\1\2\3\0\1\2\3\0\1\0\2', dictionary)
+compressed = compress('000110110001101100010010', dictionary)
 print (compressed)
 #decompressed = decompress(compressed, dictionary)
 #print (decompressed)
+
