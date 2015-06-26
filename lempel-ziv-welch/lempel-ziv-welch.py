@@ -1,63 +1,146 @@
-def bits_per_symbol(size):
-  return len(bin(size + size%2)[2:]) - 1
+class CodeBookElement:
+  def __init__(self, start, length):
+    self.start = start
+    self.end = start + length
 
-def compress(uncompressed, dictionary):
+  def __add__(self,other):
+    return CodeBookElement(self.start,self.end+other)
+
+  def __eq__(self,other):
+    if not isinstance(other,CodeBookElement):
+      return False
+
+    return (self.start == other.start) and (self.end == other.end)
+
+  def __repr__(self):
+    return '%s(%s:%s)' % (self.__class__, repr(self.start), repr(self.end))
+
+  def __str__(self):
+    return self.__repr__().split('.')[-1]
+
+class CodeBook:
+  def __init__(self, dictionary):
+    self.initial = dictionary
+    self.book = []
+
+  def __contains__(self, item_data_tuple):
+    item = item_data_tuple[0]
+    data = item_data_tuple[1]
+
+    print ("Checking code", str(item))
+
+    if data[item.start:item.end] in self.initial:
+      print "code in dict"
+      return True
+
+    for ecb in self.book:
+      if data[item.start:item.end] == data[ecb.start:ecb.end]:
+        print "code in book"
+        return True
+
+    print ("code not in book", str(item))
+    return False
+
+  def __len__(self):
+    return len(self.initial)+len(self.book)
+
+  def _str_or_repr(self, is_str=False):
+    s = ''
+    cbi = []
+    cbe = []
+
+    for key in self.initial:
+      cbi.append(str(key).rjust(10) + ':' + str(self.initial[key]).rjust(5))
+    for item in self.book:
+      cbe.append(str(item))
+
+    if is_str:
+      s += '\nDictionary(\n'       + '\n'.join(cbi) + ')'
+      s += '\nCodeBookElements(\n' + '\n'.join(cbe) + ')'
+    else:
+      s += 'Dictionary('       + ','.join(cbi) + '),'
+      s += 'CodeBookElements(' + ','.join(cbe) + ')'
+
+    return s
+
+  def __repr__(self):
+    return '%s(%s)' % (self.__class__, self._str_or_repr())
+
+  def __str__(self):
+    return '%s(%s)' % (str(self.__class__).split('.')[-1], self._str_or_repr(True))
+
+  def append(self, item):
+    self.book.append(item)
+
+  def index_of(self, item, data):
+    if data[item.start:item.end] in self.initial:
+      return self.initial[data[item.start:item.end]]
+
+    for ecb,index in enumerate(self.book):
+      if item == ecb:
+        return len(self.initial)+index
+
+class LZW:
+  def __init__(self, codebook):
+    self.cb  = codebook
+    self.bpc = self.bits_per_code()
+
+  def bits_per_code(self):
+    size = len(self.cb)
+    return len(bin(size + size%2)[2:]) - 1
+
+  def compress(self, uncompressed):
     """Compress a bitstring to a list of output symbols."""
 
     # Build the dictionary.
-    dict_size = len(dictionary)
-    bps = bits_per_symbol(dict_size)
+    dict_size = len(self.cb)
 
-    if len(uncompressed)%bps != 0:
+    if len(uncompressed)%self.bpc != 0:
         raise ValueError('Input data cannot be compressed with current dictionary')
 
-    w = ""
-    result = []
-    print('Current\tNext byte\tOutput\tExtended dictionary')
-    for i in range(0,len(uncompressed),bps):
-        c = uncompressed[i:i+bps]
-        wc = w + c
-        if wc in dictionary:
-            w = wc
+    w        = CodeBookElement(0,0)
+    result   = []
+    extended = []
+    print [uncompressed[i:i+self.bpc] for i in range(0,len(uncompressed),self.bpc)]
+    print('Current\t\t\tNext byte\tOutput\tExtended dictionary')
+    for i in range(0,len(uncompressed),self.bpc):
+        print str(w + self.bpc)
+        if (w+self.bpc,uncompressed) in self.cb:
+            w += self.bpc
         else:
-            result.append(dictionary[w])
+            result.append(self.cb.index_of(w,uncompressed))
             # Add wc to the dictionary.
-            dictionary[wc] = dict_size
+            self.cb.append(w+self.bpc)
             dict_size += 1
 
             # Current, next byte, output, extended dictionary
-            print ('%s\t%s\t\t%s\t%d %s' %(w,c,dictionary[w],dict_size,wc))
+            #print ('%s\t%s\t\t%s\t%d %s' %(w,uncompressed[i:i+self.bpc],result[-1],dict_size,w))
 
-            w = c
+            w = CodeBookElement(i,0)
 
         #print ('c = %s' % (c))
 
     # Output the code for w.
     if w:
-        result.append(dictionary[w])
-        print ('%s\t%s\t\t%s' %(w,c,dictionary[w]))
+        result.append(self.cb.index_of(w,uncompressed))
+        print ('%s\t\t\t\t%s' %(w,result[-1]))
 
-    print ('dict=',dictionary)
+    print '\n' , self.cb
     return result
-
-
-
 
 def decompress(compressed, dictionary):
     """Decompress a list of output ks to a string."""
 
     # Build the dictionary.
     dict_size = len(dictionary)
-    bits_per_symbol = len(bin(dict_size + dict_size%2)[2:]) - 1
-
-    if len(uncompressed)%bits_per_symbol != 0:
-        raise ValueError('Input data cannot be compressed with current dictionary')
 
     result = []
     w = compressed.pop(0)
     result.append(w)
-    for k in compressed:
-        if k in dictionary:
+    i = o
+    while i-self.bpc < len(uncompressed):
+        k = compressed[i:i+self.bpc]
+        if dictionary.has_key(k):
             entry = dictionary[k]
         elif k == dict_size:
             entry = w + w[0]
@@ -70,14 +153,16 @@ def decompress(compressed, dictionary):
         dict_size += 1
 
         w = entry
+        i += self.bpc
     return result
 
 
 # How to use:
-dictionary = { bin(i)[2:].rjust(2,'0'): i for i in range(4) }
-print ('dict=',dictionary)
-compressed = compress('000110110001101100010010', dictionary)
+cb = CodeBook({ bin(i)[2:].rjust(2,'0'): i for i in range(4) })
+lzw = LZW(cb)
+print cb,'\n'
+compressed = lzw.compress('000110110001101100010010')
 print (compressed)
-#decompressed = decompress(compressed, dictionary)
+#decompressed = lzw.decompress(compressed)
 #print (decompressed)
 
