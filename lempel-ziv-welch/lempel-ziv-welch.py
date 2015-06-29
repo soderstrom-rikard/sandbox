@@ -73,12 +73,19 @@ class CodeBook:
     self.book.append(item)
 
   def index_of(self, item, data):
+    if item.start == item.end:
+      print ('Item length is zero', item)
+      return None
+
     if data[item.start:item.end] in self.initial:
       return self.initial[data[item.start:item.end]]
 
-    for ecb,index in enumerate(self.book):
-      if item == ecb:
+    for index,ecb in enumerate(self.book):
+      if data[item.start:item.end] == data[ecb.start:ecb.end]:
         return len(self.initial)+index
+
+    print ('Could not find', item)
+    return None
 
 class LZW:
   def __init__(self, codebook):
@@ -104,6 +111,7 @@ class LZW:
     print [uncompressed[i:i+self.bpc] for i in range(0,len(uncompressed),self.bpc)]
     print('Current\t\t\tNext byte\tOutput\tExtended dictionary')
     for i in range(0,len(uncompressed),self.bpc):
+        print ('i = %d' %(i))
         print str(w + self.bpc)
         if (w+self.bpc,uncompressed) in self.cb:
             w += self.bpc
@@ -116,7 +124,7 @@ class LZW:
             # Current, next byte, output, extended dictionary
             #print ('%s\t%s\t\t%s\t%d %s' %(w,uncompressed[i:i+self.bpc],result[-1],dict_size,w))
 
-            w = CodeBookElement(i,0)
+            w = CodeBookElement(i-self.bpc,0)
 
         #print ('c = %s' % (c))
 
