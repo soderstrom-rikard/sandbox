@@ -1,8 +1,10 @@
+CPP=g++
 BIN=placement-new
 SRC=main.cpp
+CPP_ARGS=--std=c++14 -Wall -Weffc++ -Wpedantic
 
 ${BIN}: ${SRC}
-	g++ --std=c++14 -o $@ ${SRC}
+	${CPP} ${CPP_ARGS} -o $@ ${SRC}
 
 memcheck callgrind: ${BIN}
 	valgrind --tool=$@ ./${BIN}
