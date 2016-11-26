@@ -7,4 +7,7 @@ ${BIN}: ${SRC}
 memcheck callgrind: ${BIN}
 	valgrind --tool=$@ ./${BIN}
 
-test: memcheck callgrind
+static-analysis: ${SRC}
+	cppcheck ${SRC}
+
+test: memcheck callgrind static-analysis
