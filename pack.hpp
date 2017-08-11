@@ -18,30 +18,30 @@
 namespace pack {
 
 /* Low-level bit manipulation */
-inline void pack_1to7bits_in_one_byte     (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
+__attribute((always_inline)) inline void pack_1to7bits_in_one_byte     (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
 { dst[0] ^= (dst[0] ^ (src[0] << offset    )) & mask; }
-inline void pack_8bits_in_one_byte        (uint8_t *dst, uint8_t *src)
+__attribute((always_inline)) inline void pack_8bits_in_one_byte        (uint8_t *dst, uint8_t *src)
 { dst[0] = src[0]; }
-inline void pack_2to15bits_in_two_bytes   (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
+__attribute((always_inline)) inline void pack_2to15bits_in_two_bytes   (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
 { dst[0] ^= (dst[0] ^ (src[0] >> offset    )) & mask;
   dst[1] ^= (dst[1] ^ (src[1] << (8-offset))) & mask;}
-inline void pack_16bits_in_two_bytes      (uint8_t *dst, uint8_t *src)
+__attribute((always_inline)) inline void pack_16bits_in_two_bytes      (uint8_t *dst, uint8_t *src)
 { dst[0] = src[0]; dst[1] = src[1]; }
-inline void pack_10to23bits_in_three_bytes(uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
+__attribute((always_inline)) inline void pack_10to23bits_in_three_bytes(uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
 { dst[0] ^= (dst[0] ^ (src[0] >> offset    )) & mask;
   dst[1] ^= (dst[1] ^ (src[1] << (8-offset))) & mask;
   dst[1] ^= (dst[1] ^ (src[1] >> offset    )) & mask;
   dst[2] ^= (dst[2] ^ (src[2] << (8-offset))) & mask; }
-inline void pack_24bits_in_three_bytes    (uint8_t *dst, uint8_t *src)
+__attribute((always_inline)) inline void pack_24bits_in_three_bytes    (uint8_t *dst, uint8_t *src)
 { dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; }
-inline void pack_18to31bits_in_four_bytes (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
+__attribute((always_inline)) inline void pack_18to31bits_in_four_bytes (uint8_t *dst, uint8_t *src, const uint8_t offset, const uint8_t mask)
 { dst[0] ^= (dst[0] ^ (src[0] >> offset    )) & mask;
   dst[1] ^= (dst[1] ^ (src[1] << (8-offset))) & mask;
   dst[1] ^= (dst[1] ^ (src[1] >> offset    )) & mask;
   dst[2] ^= (dst[2] ^ (src[2] << (8-offset))) & mask;
   dst[2] ^= (dst[2] ^ (src[2] >> offset    )) & mask;
   dst[3] ^= (dst[3] ^ (src[3] << (8-offset))) & mask; }
-inline void pack_32bits_in_four_bytes     (uint8_t *dst, uint8_t *src)
+__attribute((always_inline)) inline void pack_32bits_in_four_bytes     (uint8_t *dst, uint8_t *src)
 { dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3]; }
 
 };
