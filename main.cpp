@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -14,66 +15,63 @@ using string_vec = std::vector<std::string>;
 
 namespace /* anonymous */
 {
-static size_t     match_index = 0u;
-static string_vec matches;
-static string_vec vocabulary;
 static char *     line = nullptr;
+static const string_vec commands{
+    "info-all",
+    "info-allocations",
+    "info-memory-usage",
+    "read-memory-area",
+    "read-single-byte",
+    "write-memory-area",
+    "write-single-byte"
+    };
 
-char* completion_generator(const char* text, int state)
-{
-    // This function is called with state=0 the first time; subsequent calls are
-    // with a nonzero state. state=0 can be used to perform one-time
-    // initialization for this completion session.
-
-    if (state == 0)
-    {
-        // During initialization, compute the actual matches for 'text' and keep
-        // them in a static vector.
-        matches.clear();
-        match_index = 0;
-
-        // Collect a vector of matches: vocabulary words that begin with text.
-        std::string textstr = std::string(text);
-        for (auto word : vocabulary)
-        {
-            if (word.size() >= textstr.size() && word.compare(0, textstr.size(), textstr) == 0)
-            {
-                matches.push_back(word);
-            }
-        }
-    }
-
-    if (match_index >= matches.size())
-    {
-        // We return nullptr to notify the caller no more matches are available.
-        return nullptr;
-    }
-    else
-    {
-        // Return a malloc'd char* for the match. The caller frees it.
-        return strdup(matches[match_index++].c_str());
-    }
-}
 
 char** completer(const char* text, int start, int end)
 {
-    (void)text;
     (void)start;
     (void)end;
+    // Don't do filename completion even if our generator finds no matches.
+    rl_attempted_completion_over = 1;
 
-    // Note: returning nullptr here will make readline use the default filename
-    // completer.
-    return rl_completion_matches(text, completion_generator);
-    //return nullptr;
+    // Fill matches with all words from commands that begins with `text`.
+    std::string textstr(text);
+    string_vec matches;
+    std::copy_if(commands.begin(), commands.end(), std::back_inserter(matches),
+        [&textstr](const std::string& s)
+        {
+            return (s.size() >= textstr.size() && s.compare(0, textstr.size(),textstr) == 0);
+        });
+
+    if (matches.empty()) return nullptr;
+
+    char** array = static_cast<char**>(malloc((2 + matches.size()) * sizeof(*array)));
+
+    size_t pos = 1;
+    std::string longest_common_prefix(matches.back());
+    for (const auto& m : matches)
+    {
+        array[pos++] = strdup(m.c_str());
+
+        // find longest longest_common_prefix with m.
+        size_t i=0u;
+        for(; i < std::min(longest_common_prefix.size(),m.size()); i++)
+        {
+            if (longest_common_prefix[i] != m[i]) break;
+        }
+        longest_common_prefix = longest_common_prefix.substr(0,i);
+
+    }
+
+    array[0] = strdup(longest_common_prefix.c_str());
+
+    array[pos] = nullptr;
+    return array;
 }
 } //namespace: anonymous
 
 void initialize()
 {
-    vocabulary.push_back("info" );
-    vocabulary.push_back("read" );
-    vocabulary.push_back("write");
-
     // bindings
     rl_attempted_completion_function = completer;
 }
