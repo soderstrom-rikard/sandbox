@@ -13,18 +13,38 @@ namespace cmdline
 
 using string_vec = std::vector<std::string>;
 
+struct Command
+{
+    Command(std::string n)                         : name(n), subcommands()   {}
+    Command(std::string n, std::vector<Command> sc): name(n), subcommands(sc) {}
+
+    const std::string    name;
+    std::vector<Command> subcommands;
+    string_vec           args;
+};
+
 namespace /* anonymous */
 {
 static char *     line = nullptr;
-static const string_vec commands{
-    "info-all",
-    "info-allocations",
-    "info-memory-usage",
-    "read-memory-area",
-    "read-single-byte",
-    "write-memory-area",
-    "write-single-byte"
-    };
+static const std::vector<Command> commands
+{
+    {"info",
+      {
+        Command("all"),
+        Command("allocations"),
+        Command("memory-usage")
+      }},
+    {"read",
+      {
+        Command("memory-area"),
+        Command("single-byte")
+      }},
+    {"write",
+      {
+        Command("memory-area"),
+        Command("single-byte")
+      }}
+};
 
 
 char** completer(const char* text, int start, int end)
@@ -36,10 +56,11 @@ char** completer(const char* text, int start, int end)
 
     // Fill matches with all words from commands that begins with `text`.
     std::string textstr(text);
-    string_vec matches;
+    std::vector<Command> matches;
     std::copy_if(commands.begin(), commands.end(), std::back_inserter(matches),
-        [&textstr](const std::string& s)
+        [&textstr](const Command& cmd)
         {
+            const std::string& s(cmd.name);
             return (s.size() >= textstr.size() && s.compare(0, textstr.size(),textstr) == 0);
         });
 
@@ -48,16 +69,16 @@ char** completer(const char* text, int start, int end)
     char** array = static_cast<char**>(malloc((2 + matches.size()) * sizeof(*array)));
 
     size_t pos = 1;
-    std::string longest_common_prefix(matches.back());
+    std::string longest_common_prefix(matches.back().name);
     for (const auto& m : matches)
     {
-        array[pos++] = strdup(m.c_str());
+        array[pos++] = strdup(m.name.c_str());
 
         // find longest longest_common_prefix with m.
         size_t i=0u;
-        for(; i < std::min(longest_common_prefix.size(),m.size()); i++)
+        for(; i < std::min(longest_common_prefix.size(),m.name.size()); i++)
         {
-            if (longest_common_prefix[i] != m[i]) break;
+            if (longest_common_prefix[i] != m.name[i]) break;
         }
         longest_common_prefix = longest_common_prefix.substr(0,i);
 
