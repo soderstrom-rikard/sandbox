@@ -11,17 +11,17 @@ OBJDIR=obj
 COMPILATION_UNITS=main elements
 PRECOMPILED_HEADER_UNITS=elements
 OBJS=$(addsuffix .o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
-GCHS=$(addsuffix .gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
+#GCHS=$(addsuffix .h.gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
 OBJS_SANE=$(addsuffix -sane.o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
-GCHS_SANE=$(addsuffix -sane.gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
+#GCHS_SANE=$(addsuffix -sane.h.gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
 LIBS=$(shell pkg-config --libs sdl2 SDL2_image SDL2_mixer SDL2_ttf)
 INCLUDES=$(shell pkg-config --cflags sdl2 SDL2_image SDL2_mixer SDL2_ttf)
 
 ${BIN}: ${OBJS} ${GCHS} makefile
 	mkdir -p ${BINDIR}
-	g++ --std=c++17 $(LIBS) $(INCLUDES) $(WARNINGS) $(DEBUG) -o $@ ${OBJS}
+	g++ --std=c++17 $(LIBS) $(INCLUDES) $(WARNINGS) $(DEBUG) -o $@ ${OBJS} ${GCHS}
 
-${OBJDIR}/%.gch: %.h
+${OBJDIR}/%.h.gch: %.h
 	mkdir -p ${OBJDIR}
 	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} ${DEBUG} -o $@ -c $<
 
@@ -31,13 +31,13 @@ ${OBJDIR}/%.o: %.cpp
 
 ${BIN}-sane: ${OBJS_SANE} ${GCHS_SANE} makefile
 	mkdir -p ${BINDIR}
-	g++ --std=c++17 -lasan $(LIBS) $(INCLUDES) $(WARNINGS) $(SANITIZERS) $(DEBUG) -o $@ ${OBJS_SANE}
+	g++ --std=c++17 -lasan $(LIBS) $(INCLUDES) $(WARNINGS) $(SANITIZERS) $(DEBUG) -o $@ ${OBJS_SANE} ${GCHS_SANE}
 
 ${OBJDIR}/%-sane.o: %.cpp
 	mkdir -p ${OBJDIR}
 	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} $(SANITIZERS) ${DEBUG} -o $@ -c $<
 
-${OBJDIR}/%-sane.gch: %.h
+${OBJDIR}/%-sane.h.gch: %.h
 	mkdir -p ${OBJDIR}
 	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} ${DEBUG} -o $@ -c $<
 
