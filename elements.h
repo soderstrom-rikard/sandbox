@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ELEMENTS_H__
+#define __ELEMENTS_H__
 
 #include <cstdint>
 #include <string_view>
@@ -43,3 +44,5 @@ struct element_t
     const category_t  category;
     const natural_t   occurrence;
 }; // struct - element_t
+
+#endif // __ELEMENTS_H__

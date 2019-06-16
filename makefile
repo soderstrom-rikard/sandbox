@@ -9,26 +9,37 @@ DEBUG=-ggdb3 -Og
 
 OBJDIR=obj
 COMPILATION_UNITS=main elements
+PRECOMPILED_HEADER_UNITS=elements
 OBJS=$(addsuffix .o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
+GCHS=$(addsuffix .gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
 OBJS_SANE=$(addsuffix -sane.o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
+GCHS_SANE=$(addsuffix -sane.gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
 LIBS=$(shell pkg-config --libs sdl2 SDL2_image SDL2_mixer)
 INCLUDES=$(shell pkg-config --cflags sdl2 SDL2_image SDL2_mixer)
 
-${BIN}: ${OBJS} makefile
+${BIN}: ${OBJS} ${GCHS} makefile
 	mkdir -p ${BINDIR}
 	g++ --std=c++17 $(LIBS) $(INCLUDES) $(WARNINGS) $(DEBUG) -o $@ ${OBJS}
+
+${OBJDIR}/%.gch: %.h
+	mkdir -p ${OBJDIR}
+	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} ${DEBUG} -o $@ -c $<
 
 ${OBJDIR}/%.o: %.cpp
 	mkdir -p ${OBJDIR}
 	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} ${DEBUG} -o $@ -c $<
 
-${BIN}-sane: ${OBJS_SANE} makefile
+${BIN}-sane: ${OBJS_SANE} ${GCHS_SANE} makefile
 	mkdir -p ${BINDIR}
 	g++ --std=c++17 -lasan $(LIBS) $(INCLUDES) $(WARNINGS) $(SANITIZERS) $(DEBUG) -o $@ ${OBJS_SANE}
 
 ${OBJDIR}/%-sane.o: %.cpp
 	mkdir -p ${OBJDIR}
 	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} $(SANITIZERS) ${DEBUG} -o $@ -c $<
+
+${OBJDIR}/%-sane.gch: %.h
+	mkdir -p ${OBJDIR}
+	g++ --std=c++17 ${LIBS} ${INCLUDES} ${WARNINGS} ${DEBUG} -o $@ -c $<
 
 memcheck callgrind: ${BIN}
 	valgrind --tool=$@ ./${BIN}
