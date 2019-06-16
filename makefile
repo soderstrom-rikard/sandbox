@@ -14,8 +14,8 @@ OBJS=$(addsuffix .o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
 GCHS=$(addsuffix .gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
 OBJS_SANE=$(addsuffix -sane.o,$(addprefix ${OBJDIR}/,${COMPILATION_UNITS}))
 GCHS_SANE=$(addsuffix -sane.gch,$(addprefix ${OBJDIR}/,${PRECOMPILED_HEADER_UNITS}))
-LIBS=$(shell pkg-config --libs sdl2 SDL2_image SDL2_mixer)
-INCLUDES=$(shell pkg-config --cflags sdl2 SDL2_image SDL2_mixer)
+LIBS=$(shell pkg-config --libs sdl2 SDL2_image SDL2_mixer SDL2_ttf)
+INCLUDES=$(shell pkg-config --cflags sdl2 SDL2_image SDL2_mixer SDL2_ttf)
 
 ${BIN}: ${OBJS} ${GCHS} makefile
 	mkdir -p ${BINDIR}

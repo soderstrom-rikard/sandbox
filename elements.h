@@ -1,6 +1,7 @@
 #ifndef __ELEMENTS_H__
 #define __ELEMENTS_H__
 
+// Standard C++ headers
 #include <cstdint>
 #include <string_view>
 
@@ -44,5 +45,7 @@ struct element_t
     const category_t  category;
     const natural_t   occurrence;
 }; // struct - element_t
+
+const element_t & get_element(size_t index);
 
 #endif // __ELEMENTS_H__

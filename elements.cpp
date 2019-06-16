@@ -1,5 +1,7 @@
+// Standard C++ headers
 #include <array>
 
+// Project headers
 #include "elements.h"
 
 using phase_t    = element_t::phase_t;
@@ -126,3 +128,8 @@ constexpr const std::array<element_t, 118> elements = {
     element_t{ 102, "No", "Nobelium", 259, phase_t::unknown, category_t::actinide, natural_t::synthetic},
     element_t{ 103, "Lr", "Lawrencium", 266, phase_t::unknown, category_t::actinide, natural_t::synthetic}
 };
+
+const element_t & get_element(size_t index)
+{
+    return elements[index];
+}
