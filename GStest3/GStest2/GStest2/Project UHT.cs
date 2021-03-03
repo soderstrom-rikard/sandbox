@@ -35,29 +35,34 @@ namespace GStest2
         case ProgramSteps.Off:
           Program.CurrentStep = ProgramSteps.Initialize;
           break;
+
         case ProgramSteps.Initialize:
           Vattensimulator.Initialize(_syncContext);
           Vattensimulator.EquipmentChangedEvent += EquipmentChangedEvent;
           Vattensimulator.Start();
           Program.CurrentStep = ProgramSteps.StartCirculation;
           break;
+
         case ProgramSteps.StartCirculation:
           Vattensimulator.StartCirculationPump(Program.WaterFlow);
           Program.LastPulse = DateTime.UtcNow;
           Program.CurrentStep = ProgramSteps.WaitForAirPulse;
           break;
+
         case ProgramSteps.WaitForAirPulse:
           if (!_t1.Enabled) // stop button clicked
           {
            Program.CurrentStep = ProgramSteps.StopCirculation;
           }
+
           else if (DateTime.UtcNow > (Program.LastPulse + TimeSpan.FromSeconds(Program.PulseInterval)))
           {
             Vattensimulator.OpenAirValve();
             Program.CurrentStep = ProgramSteps.WaitForPulseLength;
           }
-          
+
           break;
+
         case ProgramSteps.WaitForPulseLength:
           if (!_t1.Enabled) // stop button clicked
           {
@@ -71,14 +76,17 @@ namespace GStest2
           }
 
           break;
+
         case ProgramSteps.CloseAirValve:
           Vattensimulator.CloseAirValve();
           Program.CurrentStep = ProgramSteps.StopCirculation;
           break;
+
         case ProgramSteps.StopCirculation:
           Vattensimulator.StopCirculationPump();
           Program.CurrentStep = ProgramSteps.Off;
           break;
+
         default:
           break;
       }
