@@ -101,7 +101,7 @@ namespace Vattenrening
       valveStatus = ValveStatus.Closed;
       motorStatus = MotorStatus.Off;
 
-      timer_refresh_gui.Elapsed += Timer_Refresh_GUI;
+      timer_refresh_gui.Elapsed += Timer_Refresh_GUI_Handler;
     }
 
     // Hur ofta det uppdaterar informationen, sätter nya defaultvärdet för hur frekvent det uppdateras.
@@ -116,7 +116,7 @@ namespace Vattenrening
     }
 
     //När timern räknat klart kommer det uppdatera status för motor och ventil
-    private void Timer_Refresh_GUI(object sender, System.Timers.ElapsedEventArgs e)
+    private void Timer_Refresh_GUI_Handler(object sender, System.Timers.ElapsedEventArgs e)
     {
       _syncContext.Post(o => EquipmentChangedEvent?.Invoke(), null);
     }
