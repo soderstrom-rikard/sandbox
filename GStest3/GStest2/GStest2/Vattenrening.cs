@@ -59,7 +59,7 @@ namespace Vattenrening
 
   public class WaterCleaningSimulator : IWaterCleaningAdapter
   {
-    readonly System.Timers.Timer timer = new System.Timers.Timer();
+    readonly System.Timers.Timer timer_refresh_gui = new System.Timers.Timer();
 
     public Action EquipmentChangedEvent;
 
@@ -101,18 +101,18 @@ namespace Vattenrening
       valveStatus = ValveStatus.Closed;
       motorStatus = MotorStatus.Off;
 
-      timer.Elapsed += Timer_Refresh_GUI;
+      timer_refresh_gui.Elapsed += Timer_Refresh_GUI;
     }
 
     // Hur ofta det uppdaterar informationen, sätter nya defaultvärdet för hur frekvent det uppdateras.
     public void Start(int interval = 100)
     {
-      timer.Interval = interval;
-      timer.Start();
+      timer_refresh_gui.Interval = interval;
+      timer_refresh_gui.Start();
     }
     public void Stop()
     {
-      timer.Stop();
+      timer_refresh_gui.Stop();
     }
 
     //När timern räknat klart kommer det uppdatera status för motor och ventil
