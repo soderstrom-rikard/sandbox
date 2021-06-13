@@ -1,0 +1,53 @@
+## Create Docker Image from file "DockerFile"
+#  docker build -t debian:buster-ada -f DockerFile build/docker
+#
+## Run generated image, i.e create docker container
+#  docker run -it -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged debian:buster-ada
+#
+## Monitor containers (in different shell)
+#  docker ps
+#
+## Stop container
+#  docker stop CONTAINER-ID
+#
+## Delete intermediate image
+#  docker image rm --force IMAGE-ID
+#
+# General
+FROM debian:buster
+MAINTAINER "Rikard Söderström" <soderstrom.rikard@gmail.com>
+ENV container docker
+RUN apt update
+
+RUN apt install -y --no-install-recommends ada-reference-manual-2012 \
+                                           clang                     \
+                                           gnat                      \
+                                           gprbuild                  \
+                                           libglfw3                  \
+                                           libfreetype6
+
+RUN apt-get clean
+
+#
+# Clear password for root (simplies debugging)
+RUN passwd --delete root
+
+#
+## Create builder
+# password encryption string https://en.wikipedia.org/wiki/Crypt_(C)
+# $1$ is MD5
+# $2a$ is Blowfish
+# $2y$ is Eksblowfish
+# $5$ is SHA-256
+# $6$ is SHA-512
+# crypt(builder)='$6$ilP.2b9QhRhKtfUf$g3dR21aqJPclKzclIyufxU/zTe0Bs/nKqpM5GL7A021N8bUlY1jVqHTwREpZlTd.2qrfraaCQarl3G0rfohTu0'
+
+RUN useradd --create-home --shell /bin/bash -G users,sudo -p '$6$ilP.2b9QhRhKtfUf$g3dR21aqJPclKzclIyufxU/zTe0Bs/nKqpM5GL7A021N8bUlY1jVqHTwREpZlTd.2qrfraaCQarl3G0rfohTu0' builder
+
+# Add/Remove comment on line below to temporary add/remove packages for enable debugging of docker environment
+RUN apt install -y --no-install-recommends sudo vim
+
+#
+# Run commands as builder
+USER builder
+ENV USER="builder"

@@ -1,0 +1,9 @@
+[submodule "external/Ada LIbrary REpository"]
+	path = external/Ada LIbrary REpository
+	url = https://github.com/alire-project/alire.git
+[submodule "external/OpenGL Ada"]
+	path = external/OpenGL Ada
+	url = https://github.com/flyx/OpenGLAda.git
+[submodule "external/Generic Image Decoder"]
+	path = external/Generic Image Decoder
+	url = https://github.com/soderstrom-rikard/ada-gid
