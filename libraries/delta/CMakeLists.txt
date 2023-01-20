@@ -1,0 +1,15 @@
+set(SOURCE_FILES
+    delta.cpp
+    delta.h
+    PARENT_SCOPE)
+
+  #if (${CMAKE_CXX_COMPILER} MATCHES "em\\+\\+$")
+  #  set(LIBRARY_INCLUDES "" PARENT_SCOPE)
+  #  set(LIBRARY_CFLAGS "-g" PARENT_SCOPE)
+  #  set(LIBRARY_LIBRARIES "" PARENT_SCOPE)
+  #else()
+  #  find_package(SDL REQUIRED)
+  #  set(LIBRARY_INCLUDES "${SDL_INCLUDE_DIRS}" PARENT_SCOPE)
+  #  set(LIBRARY_CFLAGS "-g" PARENT_SCOPE)
+  #  set(LIBRARY_LIBRARIES "${SDL_LIBRARIES}" PARENT_SCOPE)
+  #endif()

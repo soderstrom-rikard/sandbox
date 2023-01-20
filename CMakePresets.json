@@ -1,0 +1,52 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired":
+  {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets":
+  [
+    {
+      "name": "default",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/default-release"
+    },
+    {
+      "name": "default-with-sanitizers",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/default-with-sanitizers",
+      "cacheVariables":
+      {
+        "BUILD_WITH_SANITIZERS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DCMAKE_CXX_CLANG_TIDY": "clang-tidy;--fix"
+      }
+    },
+    {
+      "name": "emscripten",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/emscripten-release",
+      "cacheVariables":
+      {
+        "CMAKE_C_COMPILER": "emcc",
+        "CMAKE_CXX_COMPILER": "em++",
+        "CMAKE_AR": "emar"
+      }
+    },
+    {
+      "name": "emscripten-with-sanitizers",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/emscripten-with-sanitizers",
+      "cacheVariables":
+      {
+        "CMAKE_C_COMPILER": "emcc",
+        "CMAKE_CXX_COMPILER": "em++",
+        "CMAKE_AR": "emar",
+        "BUILD_WITH_SANITIZERS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ]
+}
