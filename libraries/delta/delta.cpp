@@ -12,24 +12,34 @@
 namespace filecast::libraries::delta
 {
 
-void decode(uint8_istream &source, uint8_ostream &dest)
+void decode(istream &source, ostream &dest)
 {
+    // stop istream from eating new lines
+    source.unsetf(std::ios::skipws);
+
     unsigned char last = 0;
     unsigned char current;
-    while (source.read(&current, 1))
+    while (source >> current)
     {
-        dest << current + last;
-        last = current;
+        unsigned char delta = current + last;
+        std::cout << "current '" << current << "' last '" << last << "' delta '" << static_cast<unsigned>(delta) << "'" << std::endl;
+        dest << delta;
+        last = delta;
     }
 }
 
-void encode(uint8_istream &source, uint8_ostream &dest)
+void encode(istream &source, ostream &dest)
 {
+    // stop istream from eating new lines
+    source.unsetf(std::ios::skipws);
+
     unsigned char last = 0;
     unsigned char current;
-    while (source.read(&current, 1))
+    while (source >> current)
     {
-        dest << current - last;
+        unsigned char delta = current - last;
+        std::cout << "current '" << current << "' last '" << last << "' delta '" << static_cast<unsigned>(delta) << "'" << std::endl;
+        dest << delta;
         last = current;
     }
 }

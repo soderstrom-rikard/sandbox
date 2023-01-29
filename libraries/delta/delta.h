@@ -10,10 +10,10 @@
 
 namespace filecast::libraries::delta
 {
-using uint8_istream = std::basic_istream<std::uint8_t>;
-using uint8_ostream = std::basic_ostream<std::uint8_t>;
+using istream = std::istream;
+using ostream = std::ostream;
 
-void decode(uint8_istream &source, uint8_ostream &dest);
-void encode(uint8_istream &source, uint8_ostream &dest);
+void decode(istream &source, ostream &dest);
+void encode(istream &source, ostream &dest);
 
 } // namespace filecast::libraries::delta

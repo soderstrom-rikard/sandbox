@@ -40,33 +40,56 @@ auto parse_casters(const std::vector<std::string> &casters, const std::string &c
     return test_casters;
 }
 
+void print_rdstate(const std::fstream &file)
+{
+    std::cout << "rdstate() : " << file.rdstate() << std::endl;
+
+    if (file.fail())
+    {
+        std::cout << "failbit is set" << std::endl;
+    }
+    if (file.bad())
+    {
+        std::cout << "badbit is set" << std::endl;
+    }
+    if (file.eof())
+    {
+        std::cout << "eofbit is set" << std::endl;
+    }
+}
+
 void run_tests(const std::vector<std::string> &casters)
 {
     std::cout << "=========== Built-in tests of data encoding casters ============================" << std::endl;
 
-    const auto                        mode_rwb = std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc;
-    std::basic_fstream<unsigned char> source("/tmp/filecast.source", mode_rwb);
-    std::basic_fstream<unsigned char> dest1("/tmp/filecast.dest1", mode_rwb);
-    std::basic_fstream<unsigned char> dest2("/tmp/filecast.dest2", mode_rwb);
+    const auto   mode_rwb = std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc;
+    std::fstream source("/tmp/filecast.source", mode_rwb);
+    std::fstream dest1("/tmp/filecast.dest1", mode_rwb);
+    std::fstream dest2("/tmp/filecast.dest2", mode_rwb);
 
     if (source.is_open())
     {
-        std::cout << "source is open" << std::endl;
+        source << "hello world";
+        if (not source.good())
+        {
+            std::cout << "source is bad" << std::endl;
+            print_rdstate(source);
+        }
     }
     else
     {
         std::cout << "source is closed" << std::endl;
     }
 
-    std::string s = "hello world";
-    source.write(reinterpret_cast<unsigned char *>(s.data()), s.size());
     source.seekp(0);
 
+    std::cout << "encoding source into dest1" << std::endl;
     filecast::libraries::delta::encode(
-        static_cast<filecast::libraries::delta::uint8_istream &>(source),
-        static_cast<filecast::libraries::delta::uint8_ostream &>(dest1));
+        static_cast<std::istream &>(source),
+        static_cast<std::ostream &>(dest1));
     dest1.seekp(0);
 
+    std::cout << "decoding dest1 into dest2" << std::endl;
     filecast::libraries::delta::decode(dest1, dest2);
     dest2.seekp(0);
 
